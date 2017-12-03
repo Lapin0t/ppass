@@ -100,7 +100,7 @@ def build_model(trans):
         model[state] = Node(
             choices=tuple(x[0] for x in ord),
             cumdist=tuple(accumulate([x[1] for x in ord])),
-            entropy=-sum(f/tot * log(f/tot) for f in succs.values()))
+            entropy=-sum(f/tot * log(f/tot, 2) for f in succs.values()))
     return model
 
 
