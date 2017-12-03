@@ -11,8 +11,6 @@ model joined by a configurable separator. One special character is added after
 each word. Words will be added until the target entropy is reached. Models are
 stored in ~/.local/share/andrei.
 
-To generate a model you can give a 
-
 Usage:
   andrei --help
   andrei [--clip] [--entropy N] [--model NAME] [--min-word-len X]
@@ -28,7 +26,7 @@ Options:
   --max-word-len=Y       discard words longer than Y [default: 10]
   --specials=SPECIALS    special characters to put after each word [default: 0123456789!@#$%^&*?+=]
   --sep=SEP              word separator [default: -]
-  --filter=REGEX         regex used to filter words in the corpus [default: \\b(\w+)\\b]
+  --filter=REGEX         regex used to filter words in corpus files [default: \\b(\w+)\\b]
 
 Note:
   Python's `os.urandom` is used as a secure randomness source. If it is
@@ -44,13 +42,15 @@ from bisect import bisect
 from collections import namedtuple
 from itertools import accumulate
 from math import log, ceil
-from os import path
+from os import path, makedirs
 import pickle
 import random
 import re
+import textwrap
 
 from docopt import docopt
 import logbook
+import pyperclip
 
 
 _sysrand = random.SystemRandom()
@@ -158,11 +158,15 @@ def main():
 
     args = docopt(__doc__)
     BASE = path.expanduser(path.join('~', '.local', 'share', 'andrei'))
+    makedirs(BASE, exist_ok=True)
     if args['modelize']:
         words = word_list(args['FILE'], args['--filter'])
+        logbook.info(textwrap.shorten('Found {} words: {}'.format(
+            len(words),
+            ', '.join(words[:50])), width=70, placeholder='...'))
         gen = Generator(words, int(args['STATE_SIZE']))
         gen.dump_model(path.join(BASE, args['NAME']))
-        print('Sucessfully generated model {}'.format(args['NAME']))
+        print('Successfully generated model {}'.format(args['NAME']))
     else:
         gen = Generator(path=path.join(BASE, args['--model']))
         pw, ent = gen.generate_password(
@@ -171,10 +175,10 @@ def main():
             int(args['--max-word-len']),
             args['--specials'],
             args['--sep'])
+        logbook.info('entropy: {:.3f}'.format(ent))
         if args['--clip']:
-            pass
+            pyperclip.copy(pw)
         else:
-            logbook.info('entropy: {:.3f}'.format(ent))
             print(pw)
 
 if __name__ == '__main__':
