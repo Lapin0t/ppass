@@ -50,7 +50,7 @@ import textwrap
 
 from docopt import docopt
 import logbook
-import pyperclip
+#import pyperclip
 
 
 _sysrand = random.SystemRandom()
@@ -64,7 +64,7 @@ else:
     randrange = _sysrand.randrange
 
 
-def word_list(files, filter=r'\b([a-zA-Z]+)\b'):
+def word_list(files, filter=r'\b([a-zA-Z][a-zA-Z]+)\b'):
     pat = re.compile(filter)
     words = []
     for f in files:
